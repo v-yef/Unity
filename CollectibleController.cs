@@ -76,12 +76,12 @@ public class CollectibleController : MonoBehaviour
 				break;
 		}
 
-		if (_collectedEffect)
+		if (null != _collectedEffect)
 		{
 			Instantiate(_collectedEffect, transform.position, Quaternion.identity);
 		}
 
-		if (_collectedSound)
+		if (null != _collectedSound)
 		{
 			AudioSource.PlayClipAtPoint(_collectedSound, transform.position);
 		}
