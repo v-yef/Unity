@@ -11,8 +11,6 @@ public class CameraController : MonoBehaviour
     void Start()
     {
         parent = transform.parent;
-        
-        Cursor.lockState = CursorLockMode.Locked;
     }
 
     void Update()

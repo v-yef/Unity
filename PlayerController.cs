@@ -1,33 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
     private CharacterController _characterController;
-    private Animator _animator;
 
-    private Vector3 _moveVector;
-    private Vector3 _fallVector;
+    public Vector3 _moveVector;
+    public Vector3 _fallVector;
 
-    private float _moveSpeed;
+    private float _currentSpeed;
+    private float _bonusSpeed;
     [SerializeField] private float _walkSpeed;
-    [SerializeField] private float _runSpeed;
-
     [SerializeField] private float _gravity;
     [SerializeField] private float _groundCheckDistance;
     [SerializeField] private LayerMask _groundMask;
     [SerializeField] private float _jumpHeight;
-    private bool _isOnGround;
+    public bool IsOnGround { get; private set; }
 
     private void Awake()
     {
         _characterController = GetComponent<CharacterController>();
-        _animator = GetComponentInChildren<Animator>();
-
-#if !(UNITY_EDITOR || DEVELOPMENT_BUILD)
-        Debug.unityLogger.logEnabled = false;
-#endif
     }
 
     private void Start()
@@ -37,16 +31,16 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        move();
+        computeMovement();
     }
 
-    private void move()
+    private void computeMovement()
     {
-        _isOnGround = Physics.CheckSphere(transform.position, _groundCheckDistance, _groundMask);
+        IsOnGround = Physics.CheckSphere(transform.position, _groundCheckDistance, _groundMask);
 
-        if (_isOnGround && _fallVector.y < 0)
+        if (IsOnGround && _fallVector.y < 0)
         {
-            _fallVector.y = -1.0f;
+            _fallVector = Vector3.zero;
         }
 
         float z = Input.GetAxis("Vertical");
@@ -54,31 +48,32 @@ public class PlayerController : MonoBehaviour
         _moveVector = new Vector3(0, 0, z);
         _moveVector = transform.TransformDirection(_moveVector);
 
-        if (_isOnGround)
+        if (IsOnGround)
         {
             if (_moveVector != Vector3.zero && !Input.GetKey(KeyCode.LeftShift))
             {
-                walk();
+                moveWalk();
             }
             else if (_moveVector != Vector3.zero && Input.GetKey(KeyCode.LeftShift))
             {
-                run();
+                moveRun();
             }
             else
             {
-                idle();
+                moveIdle();
             }
 
-            _moveVector *= _moveSpeed;
+            if (Input.GetButtonDown("Jump") && _moveVector.z > 0)
+            {
+                moveJumpForward();
+            }
 
             if (Input.GetButtonDown("Jump"))
             {
-                jump();
+                moveJump();
             }
-        }
-        else
-        {
 
+            _moveVector *= _currentSpeed;
         }
 
         _characterController.Move(_moveVector * Time.deltaTime);
@@ -88,37 +83,58 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKey("escape"))
         {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-        Application.Quit();
-#endif
+            gameQuit();
         }
     }
 
-    private void idle()
+    private void moveIdle()
     {
-        _animator.SetFloat("Speed", 0, 0.1f, Time.deltaTime);
+        _currentSpeed = 0;
     }
 
-    private void walk()
+    private void moveWalk()
     {
-        _moveSpeed = _walkSpeed;
-
-        _animator.SetFloat("Speed", 0.5f, 0.1f, Time.deltaTime);
+        _currentSpeed = _walkSpeed + _bonusSpeed;
     }
 
-    private void run()
+    private void moveRun()
     {
-        _moveSpeed = _runSpeed;
-
-        _animator.SetFloat("Speed", 1, 0.1f, Time.deltaTime);
+        _currentSpeed = (_walkSpeed + _bonusSpeed) * 2;
     }
 
-    private void jump()
+    private void moveJump()
     {
         _fallVector.y = Mathf.Sqrt(_jumpHeight * (-1) * _gravity);
+    }
 
-        //_animator.SetTrigger("Jump");
+    private void moveJumpForward()
+    {
+        _fallVector = new Vector3(0, Mathf.Sqrt(_jumpHeight * (-1) * _gravity), Mathf.Sqrt(_jumpHeight * _currentSpeed));
+    }
+
+    private void gameQuit()
+    {
+        SceneManager.LoadScene("Level_0");
+    }
+
+    public void SpeedIncrease(float value)
+    {
+        _bonusSpeed += value;
+
+        Debug.Log("Speed was increased. Current value: " + _currentSpeed);
+    }
+
+    public void SpeedDecrease(float value)
+    {
+        if (_currentSpeed > _walkSpeed)
+        {
+            _bonusSpeed -= value;
+
+            Debug.Log("Speed was decreased. Current value: " + _currentSpeed);
+        }
+        else
+        {
+            Debug.Log("Speed is minimal and can't be decreased!");
+        }
     }
 }

@@ -33,6 +33,6 @@ public class NextLevelLoader : MonoBehaviour
         int levelNumberPos = sceneName.IndexOf('_');
         int currentLevelNumber = Int32.Parse(sceneName.Substring(levelNumberPos + 1));
 
-        return (currentLevelNumber + 1);
+        return (currentLevelNumber < 2) ? (currentLevelNumber + 1) : 0;
     }
 }

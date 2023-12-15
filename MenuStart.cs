@@ -12,25 +12,36 @@ public class MenuStart : MonoBehaviour
 
     public void ChooseLevel()
     {
-        //SceneManager.LoadScene();
+        SceneManager.LoadScene("ChooseLevel");
     }
 
     public void Settings()
     {
-        //SceneManager.LoadScene();
+        SceneManager.LoadScene("Settings");
     }
 
     public void About()
     {
-        //SceneManager.LoadScene();
+        SceneManager.LoadScene("About");
+    }
+
+    public void MainMenu()
+    {
+        SceneManager.LoadScene("Level_0");
+    }
+
+    public void LoadLevel_1()
+    {
+        SceneManager.LoadScene("Level_1");
+    }
+
+    public void LoadLevel_2()
+    {
+        SceneManager.LoadScene("Level_2");
     }
 
     public void Exit()
     {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
         Application.Quit();
-#endif
     }
 }
